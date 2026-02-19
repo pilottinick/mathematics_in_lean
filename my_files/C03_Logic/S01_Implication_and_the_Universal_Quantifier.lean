@@ -42,7 +42,7 @@ theorem my_lemma4 :
     ∀ {x y ε : ℝ}, 0 < ε → ε ≤ 1 → |x| < ε → |y| < ε → |x * y| < ε := by
   intro x y ε epos ele1 xlt ylt
   calc
-    |x * y| = |x| * |y| := sorry
+    |x * y| = |x| * |y| := abs_mul _ _
     _ ≤ |x| * ε := sorry
     _ < 1 * ε := sorry
     _ = ε := sorry

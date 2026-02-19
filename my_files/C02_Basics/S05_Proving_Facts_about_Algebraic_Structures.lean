@@ -126,7 +126,19 @@ example (h : ∀ x y z : α, x ⊓ (y ⊔ z) = x ⊓ y ⊔ x ⊓ z) : a ⊔ b �
 
 
 example (h : ∀ x y z : α, x ⊔ y ⊓ z = (x ⊔ y) ⊓ (x ⊔ z)) : a ⊓ (b ⊔ c) = a ⊓ b ⊔ a ⊓ c := by
-  sorry
+  rw [h]
+  nth_rw 2 [sup_comm]
+  nth_rw 3 [sup_comm]
+  repeat
+    rw [h]
+  rw [← inf_assoc]
+  have h₀ : (a ⊔ a) ⊓ (a ⊔ b) ⊓ (c ⊔ a) = a := by
+    apply le_antisymm
+    . apply le_trans inf_le_left (le_trans inf_le_left (sup_le (le_refl _) (le_refl _)))
+    . repeat apply le_inf
+      repeat apply le_sup_left
+      apply le_sup_right
+  rw [h₀, sup_comm]
 
 end
 
@@ -145,10 +157,16 @@ example (h : a ≤ b) : 0 ≤ b - a := by
   exact h
 
 example (h: 0 ≤ b - a) : a ≤ b := by
-  sorry
+  rw [← add_neg_cancel a, sub_eq_add_neg] at h
+  exact (add_le_add_iff_right (-a)).mp h
 
 example (h : a ≤ b) (h' : 0 ≤ c) : a * c ≤ b * c := by
-  sorry
+  have h₀ : 0 ≤ (b - a) * c := by
+    apply mul_nonneg
+    exact sub_nonneg_of_le h
+    exact h'
+  rw [sub_mul] at h₀
+  exact le_of_sub_nonneg h₀
 
 end
 
@@ -161,6 +179,9 @@ variable (x y z : X)
 #check (dist_triangle x y z : dist x z ≤ dist x y + dist y z)
 
 example (x y : X) : 0 ≤ dist x y := by
-  sorry
+  have h₀ : dist x x ≤ dist x y + dist y x := dist_triangle x y x
+  nth_rw 3 [dist_comm] at h₀
+  rw [← two_mul, dist_self] at h₀
+  linarith
 
 end
