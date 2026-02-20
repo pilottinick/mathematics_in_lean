@@ -64,13 +64,49 @@ theorem neg_le_abs_self (x : ℝ) : -x ≤ |x| := by
   sorry
 
 theorem abs_add (x y : ℝ) : |x + y| ≤ |x| + |y| := by
-  sorry
+  rcases le_or_gt 0 (x + y) with h | h
+  . rw [abs_of_nonneg h]
+    apply add_le_add
+    repeat exact le_abs_self _
+  . rw [abs_of_neg h]
+    rw [neg_add]
+    apply add_le_add
+    repeat exact neg_le_abs_self _
 
 theorem lt_abs : x < |y| ↔ x < y ∨ x < -y := by
-  sorry
+  rcases le_or_gt 0 y with h | h
+  . rw [abs_of_nonneg h]
+    constructor
+    . exact fun h ↦ Or.inl h
+    . intro h'
+      rcases h' with h'' | h''
+      . assumption
+      . linarith
+  . rw [abs_of_neg h]
+    constructor
+    . intro h'
+      right ; exact h'
+    . intro h'
+      rcases h' with h'' | h''
+      . linarith
+      . assumption
 
 theorem abs_lt : |x| < y ↔ -y < x ∧ x < y := by
-  sorry
+  rcases le_or_gt 0 x with h | h
+  . rw [abs_of_nonneg h]
+    constructor
+    . intro h'
+      constructor
+      repeat linarith
+    . intro h'
+      exact h'.right
+  . rw [abs_of_neg h]
+    constructor
+    . intro h'
+      constructor
+      repeat linarith
+    . intro h'
+      linarith
 
 end MyAbs
 
@@ -91,13 +127,23 @@ example {m n k : ℕ} (h : m ∣ n ∨ m ∣ k) : m ∣ n * k := by
     apply dvd_mul_right
 
 example {z : ℝ} (h : ∃ x y, z = x ^ 2 + y ^ 2 ∨ z = x ^ 2 + y ^ 2 + 1) : z ≥ 0 := by
-  sorry
+  rcases h with ⟨x, y, h' | h'⟩ <;> linarith [pow_two_nonneg x, pow_two_nonneg y]
 
 example {x : ℝ} (h : x ^ 2 = 1) : x = 1 ∨ x = -1 := by
-  sorry
+  have : (x - 1) * (x + 1) = 0 := by ring_nf ; rw [h] ; ring
+  rcases eq_zero_or_eq_zero_of_mul_eq_zero this with h' | h'
+  . rw [← add_neg_cancel 1] at h'
+    exact Or.inl (add_right_cancel h')
+  . rw [← neg_add_cancel 1] at h'
+    exact Or.inr (add_right_cancel h')
 
 example {x y : ℝ} (h : x ^ 2 = y ^ 2) : x = y ∨ x = -y := by
-  sorry
+  have : (x - y) * (x + y) = 0 := by ring_nf ; rw [h] ; ring
+  rcases eq_zero_or_eq_zero_of_mul_eq_zero this with h' | h'
+  . rw [← add_neg_cancel y] at h'
+    exact Or.inl (add_right_cancel h')
+  . rw [← neg_add_cancel y] at h'
+    exact Or.inr (add_right_cancel h')
 
 section
 variable {R : Type*} [CommRing R] [IsDomain R]
@@ -124,5 +170,12 @@ example (P : Prop) : ¬¬P → P := by
   contradiction
 
 example (P Q : Prop) : P → Q ↔ ¬P ∨ Q := by
-  sorry
-
+  constructor
+  . intro h
+    by_cases h' : P
+    . exact Or.inr (h h')
+    . exact Or.inl h'
+  . intro h h'
+    rcases h with h₁ | h₂
+    . contradiction
+    . assumption
